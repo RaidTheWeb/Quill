@@ -70,5 +70,5 @@ range(10).each(number: i) {
   print(i)
 }
 ```
-Please note that Lang is in active beta. New features will be added often.
+Please note that Quill is in active beta. New features will be added often.
 
