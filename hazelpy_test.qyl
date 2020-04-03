@@ -1,2 +1,2 @@
 import("stdlib/stdio")
-stdlib/stdio.cout()
+stdio.cout("a")
