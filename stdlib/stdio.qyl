@@ -7,3 +7,8 @@ func: cin
 cin = func(string: prompt, string) {
     return(py("data.String(input('" + prompt + "'))"))
 }
+
+func: writef
+cin = func(string: path, string: data, void) {
+    py("open('" + path + "', 'w', 0).write('" + data + "').close()")
+}
