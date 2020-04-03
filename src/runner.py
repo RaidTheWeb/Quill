@@ -8,6 +8,8 @@ PUBLIC = 0
 
 rw = lambda name: len(name) - len(name.lstrip('_'))
 
+type_method = lambda type, *other: data.Method(lambda *args: type if not args or len(args) < len(other) else type(*other, *args))
+
 op_names = {
     '+':['add'],
     '=':['eq'],
@@ -115,18 +117,18 @@ class Program():
 		self.globals = data.Map(data.Symbol, data.Type)
 		self.globals.set(data.Symbol('import'), data.Method(self._import))
 		self.globals.set(data.Symbol('if'), data.Method(self._if))
-		self.globals.set(data.Symbol('number'), data.Method(lambda: data.Number))
-		self.globals.set(data.Symbol('string'), data.Method(lambda: data.String))
 		self.globals.set(data.Symbol('return'), data.Method(lambda val: val))
-		self.globals.set(data.Symbol('func'), data.Method(lambda *args: data.Func if not args else data.Func(self.globals, *args)))
-		self.globals.set(data.Symbol('class'), data.Method(lambda *args: data.Class if not args else data.Class(self.globals, *args)))
-		self.globals.set(data.Symbol('list'), data.Method(lambda *args: data.List if not args else data.List(*args)))
-		self.globals.set(data.Symbol('range'), data.Method(lambda *args: data.Range if not args else data.Range(*args)))
-		self.globals.set(data.Symbol('type'), data.Method(lambda *args: data.Type if not args else data.Type(*args)))
-		self.globals.set(data.Symbol('symbol'), data.Method(lambda *args: data.Symbol if not args else data.Symbol(*args)))
-		self.globals.set(data.Symbol('map'), data.Method(lambda *args: data.Map if not args else data.Map(*args)))
-		self.globals.set(data.Symbol('void'), data.Method(lambda: type(None)))
 		self.globals.set(data.Symbol('py'), data.Method(lambda x: eval(x.val)))
+		self.globals.set(data.Symbol('number'), type_method(data.Number))
+		self.globals.set(data.Symbol('string'), type_method(data.String))
+		self.globals.set(data.Symbol('func'), type_method(data.Func, self.globals))
+		self.globals.set(data.Symbol('class'), type_method(data.Class, self.globals))
+		self.globals.set(data.Symbol('list'), type_method(data.List))
+		self.globals.set(data.Symbol('range'), type_method(data.Range))
+		self.globals.set(data.Symbol('type'), type_method(data.Type))
+		self.globals.set(data.Symbol('symbol'), type_method(data.Symbol))
+		self.globals.set(data.Symbol('map'), type_method(data.Map))
+		self.globals.set(data.Symbol('void'), data.Method(lambda: type(None)))
 
 	def print(self, *args): #recursion moment <----- recursion is its own reward
 		for val in args: # also i found the problem
