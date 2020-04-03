@@ -1,3 +1,5 @@
-range(5).each(number: i) {
-	print(i)
+func: a
+a = func(void) {
+	print(5)
 }
+a()

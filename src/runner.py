@@ -17,7 +17,7 @@ op_names = {
 def call(obj, *args):
 	if get(obj, 'call', error=False):
 		return get(obj, 'call')(*args)
-	elif get(obj, '_call', error=False): 
+	elif get(obj, '_call', error=False):
 		return get(obj, '_call')(*args)
 	else:
 		errors.error(f'Object {obj.string().val} is not callable')
@@ -26,7 +26,7 @@ def call(obj, *args):
 def get(obj, attr, error=True):
 	attr = data.Symbol(attr) # select it and use ctrl-[ and ctrl-]
 	if 'get' in obj.attrs:
-		return call(obj.attrs['get'], attr)	
+		return call(obj.attrs['get'], attr)
 	elif '_get' in obj.attrs:
 		return call(obj.attrs['_get'], attr)
 	elif attr.val in obj.attrs:
@@ -113,7 +113,6 @@ class Program():
 	def __init__(self, ast):
 		self.ast = ast
 		self.globals = data.Map(data.Symbol, data.Type)
-		self.globals.set(data.Symbol('print'), data.Method(self.print))
 		self.globals.set(data.Symbol('import'), data.Method(self._import))
 		self.globals.set(data.Symbol('if'), data.Method(self._if))
 		self.globals.set(data.Symbol('number'), data.Method(lambda: data.Number))
@@ -126,8 +125,8 @@ class Program():
 		self.globals.set(data.Symbol('type'), data.Method(lambda *args: data.Type if not args else data.Type(*args)))
 		self.globals.set(data.Symbol('symbol'), data.Method(lambda *args: data.Symbol if not args else data.Symbol(*args)))
 		self.globals.set(data.Symbol('map'), data.Method(lambda *args: data.Map if not args else data.Map(*args)))
-
-
+		self.globals.set(data.Symbol('void'), data.Method(lambda: type(None)))
+		self.globals.set(data.Symbol('py'), data.Method(eval))
 
 	def print(self, *args): #recursion moment <----- recursion is its own reward
 		for val in args: # also i found the problem
