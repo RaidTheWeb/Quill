@@ -1,0 +1,4 @@
+func: cout
+cout = func(string: text) {
+    print(text)
+}
