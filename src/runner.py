@@ -126,7 +126,7 @@ class Program():
 		self.globals.set(data.Symbol('symbol'), data.Method(lambda *args: data.Symbol if not args else data.Symbol(*args)))
 		self.globals.set(data.Symbol('map'), data.Method(lambda *args: data.Map if not args else data.Map(*args)))
 		self.globals.set(data.Symbol('void'), data.Method(lambda: type(None)))
-		self.globals.set(data.Symbol('py'), data.Method(eval))
+		self.globals.set(data.Symbol('py'), data.Method(lambda x: eval(x.val)))
 
 	def print(self, *args): #recursion moment <----- recursion is its own reward
 		for val in args: # also i found the problem

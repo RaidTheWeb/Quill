@@ -1,5 +1,1 @@
-func: a
-a = func(void) {
-	print(5)
-}
-a()
+py("print('hello')")

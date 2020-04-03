@@ -60,8 +60,8 @@ class String(Type):
 		return String(self.val[int(index.val)])
 	def len(self):
 		return Number(len(self.val))
-    def add(self, other):
-        return String(self.val + other.val)
+	def add(self, other):
+		return String(self.val + other.val)
 
 class Number(Type):
     def __init__(self, val):
