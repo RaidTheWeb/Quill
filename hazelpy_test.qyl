@@ -3,3 +3,8 @@ stdio.cout("a")
 
 string: a
 a = stdio.cin()
+
+string: test
+test = "Testing."
+
+stdio.writef("data/out.txt", test)
