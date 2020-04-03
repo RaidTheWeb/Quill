@@ -1,0 +1,2 @@
+import("stdlib/stdio")
+stdlib/stdio.cout()
