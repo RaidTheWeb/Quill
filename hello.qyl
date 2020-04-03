@@ -1,2 +1,2 @@
 import("stdlib/stdio")
-stdio.cout("hi")
+stdio.cout("hello, world!")
