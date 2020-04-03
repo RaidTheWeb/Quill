@@ -1,2 +1,5 @@
 import("stdlib/stdio")
 stdio.cout("a")
+
+string: a
+a = stdio.cin()

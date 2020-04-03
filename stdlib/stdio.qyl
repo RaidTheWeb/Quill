@@ -2,3 +2,8 @@ func: cout
 cout = func(string: text, void) {
     py("print('" + text + "')")
 }
+
+func: cin
+cin = func(string: prompt, string) {
+    return(py("data.String(input('" + prompt + "'))"))
+}
