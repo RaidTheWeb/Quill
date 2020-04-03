@@ -135,7 +135,7 @@ class Program():
 	def _import(self, *args):
 		name = args[0].val
 		try:
-			file = open(f'{name}.l')
+			file = open(f'{name}.qyl')
 			ast = parse.Parser().parse(parse.Lexer().tokenize(file.read()))
 			program = Program(ast)
 			program.run()
