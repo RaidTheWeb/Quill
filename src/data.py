@@ -50,6 +50,7 @@ class String(Type):
 			'_type': Method(super().type()),
 			'_index': Method(self.index),
 			'_len': Method(self.len),
+            '_add':Method(self.add),
 		}
 	def string(self):
 		return self
@@ -59,6 +60,8 @@ class String(Type):
 		return String(self.val[int(index.val)])
 	def len(self):
 		return Number(len(self.val))
+    def add(self, other):
+        return String(self.val + other.val)
 
 class Number(Type):
     def __init__(self, val):
@@ -102,7 +105,7 @@ class Bool(Type):
             '_number': Method(self.number),
 			'_type':Method(super().type),
         }
-    
+
     def string(self):
         return String(str(self.val))
 
@@ -272,7 +275,7 @@ class Range(Type):
 		self.val = List(Number)
 		for i in range(int(start.val), int(end.val), int(increase.val)):
 			self.val.append(Number(i))
-        
+
 		self.attrs = {
 			'_set':Method(super().set),
 			'_get':Method(super().get),
