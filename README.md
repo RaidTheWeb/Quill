@@ -1,5 +1,5 @@
 # Lang
-[![Run on Repl.it](https://repl.it/badge/github/sugarfi/Lang)](https://repl.it/github/sugarfi/Lang)
+[![Run on Repl.it](https://repl.it/badge/github/Lang-Language/Lang)](https://repl.it/github/Lang-Language/Lang)
 
 
 Lang is a statically typed, interpreted language.
