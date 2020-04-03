@@ -29,7 +29,7 @@
 				"name": "variable.language",
 				"match": "\\b(py)\\b" 
 			}, {
-				"name": "variable.names",
+				"name": "variable.name",
 				"match": "([^ \t\n(){}\".,:\\]\\[]+(\\.[^ \t\n(){}\".,+\\]\\[]+)*): *([^ \t\n(){}\".,:\\]\\[]+(\\.[^ \t\n(){}\".,+\\]\\[]+)*)"
 			},
 			{
