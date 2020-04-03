@@ -7,12 +7,3 @@ func: cin
 cin = func(string: prompt, string) {
     return(py("data.String(input('" + prompt + "'))"))
 }
-
-func: writef
-<<<<<<< HEAD
-writef = func(string: path, string: data, void) {
-=======
-cin = func(string: path, string: data, void) {
->>>>>>> Having stdio.writef() issues
-    py("open('" + path + "', 'w', 0).write('" + data + "').close()")
-}
