@@ -1,4 +1,4 @@
 func: cout
-cout = func(string: text) {
+cout = func(string: text, void) {
     print(text)
 }

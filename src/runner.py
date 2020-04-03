@@ -138,7 +138,7 @@ class Program():
 			ast = parse.Parser().parse(parse.Lexer().tokenize(file.read()))
 			program = Program(ast)
 			program.run()
-			self.globals.set(data.Symbol(name), program.globals)
+			self.globals.set(data.Symbol(name.split('/')[-1]), program.globals)
 		except FileNotFoundError:
 			errors.error('File not found')
 	def _if(self, *args):

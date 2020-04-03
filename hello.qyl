@@ -1,1 +1,2 @@
-py("print('hello')")
+import("stdlib/stdio")
+stdio.cout("hi")
