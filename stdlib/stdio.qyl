@@ -1,4 +1,4 @@
 func: cout
 cout = func(string: text, void) {
-    # Code goes here...
+    py("print('" + text + "')")
 }
