@@ -1,8 +1,8 @@
-# Lang
+# Quill
 [![Run on Repl.it](https://repl.it/badge/github/Lang-Language/Lang)](https://repl.it/github/Lang-Language/Lang)
 
 
-Lang is a statically typed, interpreted language.
+Quill is a statically typed, interpreted language.
 That means variables are like in C, and can only have one type, in case you didn't know.
 To create a variable, you must declare it and then give it a value.
 For example:
