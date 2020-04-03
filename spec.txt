@@ -1,0 +1,13 @@
+Everything is either a type, a function call, or a method call.
+This is done via operator overloading and syntatic sugar.
+Variables are statically typed.
+Each variable is simply a key in the map globals. It is represented by
+an object of type Symbol.
+For example:
+a = 5
+This sets the key :a (Symbol('a')) in the map globals to 5.
+Using = is simply calling the method a.=. That is how operators work:
+Every combination of a name (a), another name (=), and an expression simply 
+calls a method.
+
+
