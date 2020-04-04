@@ -9,10 +9,6 @@ cin = func(string: prompt, string) {
 }
 
 func: writef
-<<<<<<< HEAD
 writef = func(string: path, string: data, void) {
-=======
-cin = func(string: path, string: data, void) {
->>>>>>> Having stdio.writef() issues
     py("open('" + path + "', 'w', 0).write('" + data + "').close()")
 }
