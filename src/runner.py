@@ -2,30 +2,46 @@ import data
 import errors
 import parse
 
-PRIVATE = 2
-PROTECTED = 1
-PUBLIC = 0
-
-rw = lambda name: len(name) - len(name.lstrip('_'))
-
+# Very long lambda function that converts a type to a method so code can use it.
+# We want all types to be available as both objects and as methods.
+# That way, we can do stuff like number: x and x = number(5), without having two seperate methods.
+# This function returns a method object that, when given no arguments, returns the type, and
+# otherwise creates an object.
 type_method = lambda type, *other: data.Method(lambda *args: type if not args or len(args) < len(other) else type(*other, *args))
 
+# This is a dictionary of all the names to try to find the method to call for a particular operator.
+# For each name, the code will search for both the name and the name prefixed with an underscore.
 op_names = {
     '+':['add'],
     '=':['eq'],
 	'index':['index']
 }
 
+def ref(obj):
+    # Given a value, this function will convert any references it is passed to their values.
+	if isinstance(obj, data.Reference):
+		return obj.to
+	return obj
+
 def call(obj, *args):
+    # Attempts to call an object.
+	obj = ref(obj) # Make sure we aren't calling a reference.
 	if get(obj, 'call', error=False):
-		return get(obj, 'call')(*args)
+		func = get(obj, 'call')
+		if isinstance(obj, data.Method):
+			return func(*args)
+		return get(obj, 'call').attrs['_call'](*args)
 	elif get(obj, '_call', error=False):
-		return get(obj, '_call')(*args)
+		func = get(obj, '_call')
+		if isinstance(obj, data.Method):
+			return func(*args)
+		return get(obj, '_call').attrs['_call'](*args)
 	else:
 		errors.error(f'Object {obj.string().val} is not callable')
 
 
 def get(obj, attr, error=True):
+	obj = ref(obj)
 	attr = data.Symbol(attr) # select it and use ctrl-[ and ctrl-]
 	if 'get' in obj.attrs:
 		return call(obj.attrs['get'], attr)
@@ -40,6 +56,7 @@ def get(obj, attr, error=True):
 			return
 
 def op(obj, op):
+	obj = ref(obj)
 	if op.val not in obj.attrs:
 		if op.val in op_names:
 			for name in op_names[op.val]:
@@ -120,7 +137,7 @@ class Program():
 		self.globals = data.Map(data.Symbol, data.Type)
 		self.globals.set(data.Symbol('import'), data.Method(self._import))
 		self.globals.set(data.Symbol('if'), data.Method(self._if))
-		self.globals.set(data.Symbol('return'), data.Method(lambda val: val))
+		self.globals.set(data.Symbol('return'), data.Method(lambda *args: args[0] if args else None))
 		self.globals.set(data.Symbol('py'), data.Method(lambda x: eval(x.val)))
 		self.globals.set(data.Symbol('number'), type_method(data.Number))
 		self.globals.set(data.Symbol('string'), type_method(data.String))
