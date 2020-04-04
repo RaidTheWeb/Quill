@@ -9,6 +9,6 @@ cin = func(string: prompt, string) {
 }
 
 func: writef
-cin = func(string: path, string: data, void) {
+writef = func(string: path, string: data, void) {
     py("open('" + path + "', 'w', 0).write('" + data + "').close()")
 }
