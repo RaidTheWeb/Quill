@@ -1,3 +1,10 @@
+from Cython.Build import cythonize
+from distutils.core import setup
+
+modules = ['data.pyx']
+
+setup(ext_modules = cythonize(modules))
+
 import sys
 sys.path.append('./src')
 

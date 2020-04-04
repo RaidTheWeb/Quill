@@ -2,7 +2,7 @@ import errors
 
 null = None
 
-class Type():
+cpdef class Type():
 	def __init__(self):
 		self.val = None
 		self.attrs = {
@@ -12,7 +12,7 @@ class Type():
 			'_string':Method(self.string),
 			'_type':Method(self.type),
 		}
-	def set(self, symbol, val):
+	cpdef def set(self, symbol, val):
 		if symbol.val in self.attrs:
 			if not isinstance(self.attrs[symbol.val], type(val)):
 				errors.error(f'Bad type for attribute {symbol.val}') # only called on error
@@ -30,7 +30,7 @@ class Type():
 	def type(self):
 		return 'Type'
 
-class Method(Type):
+cpdef class Method(Type):
     def __init__(self, func):
         self.val = func
         self.attrs = {
@@ -40,7 +40,7 @@ class Method(Type):
     def string(self):
         return String(f'<Method {id(self.val)}>')
 
-class String(Type):
+cpdef class String(Type):
 	def __init__(self, val):
 		self.val = val.strip('"')
 		self.attrs = {
