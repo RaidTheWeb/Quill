@@ -1,2 +1,4 @@
-import("stdlib/stdio")
-stdio.cout("Hello, world!")
+import("stdlib/fs")
+fs.file: file
+file = fs.open("hello.txt")
+file.write("Hello!")

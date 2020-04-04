@@ -27,8 +27,8 @@ class Lexer(sly.Lexer):
 	STRING = r'".*?"'
 	BOOL = r'(true|false)'
 	NUMBER = r'-?[0-9]+(\.[0-9]+)?'
-	SYMBOL = r':[^ \t\n(){}".,:\]\[]+(\.[^ \t\n(){}".,+\]\[]+)*'
-	NAME = r'[^ \t\n(){}".,:\]\[]+(\.[^ \t\n(){}".,+\]\[]+)*' # here
+	SYMBOL = r':[^ \t\n(){}".,:\]\[]+(\.[^ \t\n(){}".:,+\]\[]+)*'
+	NAME = r'[^ \t\n(){}".,:\]\[]+(\.[^ \t\n(){}".,:+\]\[]+)*' # here
 
 class Parser(sly.Parser):
     tokens = Lexer.tokens

@@ -1,0 +1,23 @@
+class: file
+file = class() {
+	string: name
+	name = "hello.txt"
+
+	func: read
+	read = func(string) {
+		return(py("data.String(open('" + name + "').read())"))
+	}
+
+	func: write
+	write = func(string: data, number) {
+		py("data.Number(open('" + name + "', 'a+').write('" + data + "'))")
+	}
+}
+
+func: open
+open = func(string: name, file) {
+	file: out
+	out = file()
+	out.name = name
+	return(out)
+}

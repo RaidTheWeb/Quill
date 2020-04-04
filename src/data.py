@@ -132,7 +132,7 @@ class Map(Type):
 		if symbol.val in self.attrs:
 			if type(self.attrs[symbol.val]) != type(val):
 				errors.error(f'Invalid type for key {symbol.val}')
-				self.attrs[symbol.val] = val
+			self.attrs[symbol.val] = val
 		else:
 			self.attrs[symbol.val] = val
 	def get(self, symbol):
@@ -153,8 +153,10 @@ class Reference(Type):
 		self.to = to # the thing this is a reference to
 		self.val = to.val
 		self.attrs = self.to.attrs
-		self.attrs['eq'] = Method(self.eq)
+		self.attrs['_eq'] = Method(self.eq)
 	def eq(self, val):
+		if isinstance(val, Reference):
+			val = val.to
 		if not isinstance(val, self.t): # this checks the type
 			errors.error(f'Invalid type {val.type()}')
 		self.to.eq(val)
@@ -181,7 +183,14 @@ class Func(Type):
 		self.val = block
 		self.val.val.globals = scope
 		self.params = params[:-1] # what is expected
-		self.res = params[-1].val if params else lambda: Type
+		if not params:
+			self.res = Type
+		else:
+			last = params[-1]
+			if isinstance(last, Reference):
+				self.res = last.to.attrs['_call']()
+			else:
+				self.res = type(last)
 		self.attrs = {
 			'_set':Method(super().set),
 			'_get':Method(super().get),
@@ -189,20 +198,24 @@ class Func(Type):
 			'_call':self.call
 		}
 	def call(self, *args):
+		args = list(args)
 		if len(args) != len(self.params):
 			errors.error('Wrong amount of arguments')
 		for i in range(len(self.params)):
 			param = self.params[i]
 			name = param.val[1]
 			t = self.val.val.globals.get(Symbol(param.val[0])).val()
+			if isinstance(args[i], Reference):
+				args[i] = args[i].to
 			if type(args[i]) != t:
 				errors.error('Invalid argument type')
 			self.val.val.globals.set(Symbol(name), args[i])
 		out = self.val.val.run()
 		if isinstance(out, Reference):
 			out = out.to
-		if not isinstance(out, self.res()):
-			errors.error('Invalid return type')
+		if type(out) != Type:
+			if not isinstance(out, self.res):
+				errors.error('Invalid return type')
 		return out
 	def Return(val):
 		pass
@@ -216,17 +229,18 @@ class Class(Type):
 			'_get': Method(self.get),
 			'_call':self.call,
 			'_eq':Method(super().eq),
-			'string':Method(self.string),
+			'_string':Method(self.string),
 		}
 	def set(self, symbol, val):
 		self.val.val.globals.set(symbol, val)
 	def get(self, symbol):
 		if symbol.val in self.val.val.globals.attrs:
-			return self.val.val.globals.attrs[symbol.val]
+			return self.val.val.globals.get(symbol)
 		return self.attrs.get(symbol.val, null)
 	def call(self):
 		new = Class(self.val.val.globals, self.val)
 		new.attrs = self.attrs
+		new.val.val.globals.attrs = self.val.val.globals.attrs
 		new.val.val.run()
 		return new
 	def string(self):

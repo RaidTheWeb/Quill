@@ -52,13 +52,23 @@ def op(obj, op):
 		else:
 			return get(obj, data.Symbol(op))
 
+def get_name(name, scope):
+	name = name.split('.')
+	while name:
+		part = name.pop(0)
+		old = scope
+		scope = get(scope, data.Symbol(part))
+		if not scope:
+			errors.error(f'Object {old.string().val} has no attribute {part}')
+	return scope
+
 def expr(val, scope):
 	if val.type == 'string':
 	    return data.String(val.val[0])
 	elif val.type == 'number':
 	    return data.Number(val.val[0])
 	elif val.type == 'decl':
-		t = call(get(scope, data.Symbol(val.val[0])))
+		t = call(get_name(val.val[0], scope))
 		if t == data.Number:
 			default = data.Number(0)
 		elif t == data.String:
@@ -75,14 +85,7 @@ def expr(val, scope):
 			default = data.Type()
 		scope.set(data.Symbol(val.val[1]), default)
 	elif val.type == 'name':
-		name = val.val[0].split('.')
-		while name:
-			part = name.pop(0)
-			old = scope
-			scope = get(scope, data.Symbol(part))
-			if not scope:
-				errors.error(f'Object {old.string().val} has no attribute {part}')
-		return scope
+		return get_name(val.val[0], scope)
 	elif val.type == 'call':
 		func = expr(val.val[0], scope)
 		args = []
