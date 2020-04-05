@@ -15,12 +15,11 @@ fibonacci = func(number: n, number) {
 }
 
 func: pow
-pow = func(a,b) {
+pow = func(number:a, number:b, number) {
 	number: result
 	result = b
-	z = range(b, 1, -1)
-	z.each() {
-		b = b + (a*a)
+	range(b, 1, -1).each() {}
+		result = result + (a*a) 
 	}
 	return(result)
 }
@@ -43,6 +42,11 @@ min = func(number: a, number: b, number) {
 
 func: max
 max = func(number: a, number: b, number) {
+
+	if (a == b) {
+		return("same value")
+	}
+
 	if (a > b) {
 		return(a)
 	}
