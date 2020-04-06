@@ -6,6 +6,8 @@ nums = list(number)
 nums.append(0)
 nums.append(1)
 
-range(35, 2).each(number: index) {
-    nums.append(nums[index - 1] + nums[index - 2])
+range(36, 2).each(number: index) {
+    nums.append(nums[index - 2] + nums[index - 1])
 }
+
+stdio.cout(nums[35]._string())

@@ -104,13 +104,15 @@ class Number(Type):
             '_get':Method(super().get),
             '_string':Method(self.string),
             '_add':Method(self.add),
+            '_sub':Method(self.sub),
             '_type':Method(super().type),
         }
     def string(self):
         return String(str(self.val))
     def add(self, other):
         return Number(self.val + other.val)
-
+    def sub(self, other):
+        return Number(self.val - other.val)
 
 class Symbol(Type):
     typename = 'Symbol'
@@ -322,7 +324,7 @@ class List(Type):
             errors.error('Invalid index type')
         if val.val > len(self.val) - 1:
             errors.error('Index too high')
-        return self.val[int(val.val)]
+        return Reference(self.type, self.val[int(val.val)])
     def sort(self):
         self.val = sorted(self.val)
 
