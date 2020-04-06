@@ -1,0 +1,11 @@
+import("stdlib/stdio")
+
+list: nums
+nums = list(number)
+
+nums.append(0)
+nums.append(1)
+
+range(35, 2).each(number: index) {
+    nums.append(nums[index - 1] + nums[index - 2])
+}

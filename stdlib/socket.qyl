@@ -1,0 +1,33 @@
+class: socket
+socket = class() {
+    string: ip
+    number: port
+    _pytype: _socketobj
+
+    func: recv
+    recv = func(number: size, string) {
+        return(py("data.String(_socketobj.val.recv(int(size.val)).decode('utf-8'))"))
+    }
+
+    func: send
+    send = func(string: data, void) {
+        py("_socketobj.val.send(bytes(data.val, 'utf-8'))")
+    }
+
+    func: accept
+    accept = func(socket) {
+        socket: out
+        py("conn, addr = _socketobj.val.accept(); out.ip = data.String(addr[0]); out.port = data.Number(addr[1]); out.socketobj.val = conn")
+        return(out)
+    }
+}
+
+func: connect
+connect = func(string: ip, number: port, socket) {
+    socket: out
+    out.ip = ip
+    out.port = port
+    out._socketobj = py("socket.socket(socket.AF_INET, socket.SOCK_STREAM)")
+    py("out._socketobj.val.connect((ip.val, int(port.val)))")
+    return(out)
+}
