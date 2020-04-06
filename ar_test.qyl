@@ -1,2 +1,4 @@
 import("stdlib/math")
 import("stdlib/stdio")
+
+stdio.cout(fib(4))

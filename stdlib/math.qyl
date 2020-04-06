@@ -31,15 +31,12 @@ abs = func(number: x, number) {
 
 func: min
 min = func(number: a, number: b, number) {
-
 	if (a == b) {
 		return(a)
 	}
-
 	if (b > a) {
 		return(a)
 	}
-
 	if (a > b) {
 		return(b)
 	}
@@ -47,15 +44,12 @@ min = func(number: a, number: b, number) {
 
 func: max
 max = func(number: a, number: b, number) {
-
 	if (a == b) {
 		return(a)
 	}
-
 	if (a > b) {
 		return(a)
 	}
-
 	if (b > a) {
 		return(b)
 	}
