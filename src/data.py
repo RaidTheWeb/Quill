@@ -11,6 +11,8 @@ def convert(val, attr, fallback):
         return fallback(val)
 
 def typecheck(val, want, err='Invalid type'):
+    if want == PyType:
+        return True
     if not isinstance(val, want):
         errors.error(err)
 
@@ -35,14 +37,24 @@ class Type():
     def get(self, symbol):
         return self.attrs.get(symbol.val, null)
     def eq(self, new):
-        if not isinstance(new, self.__class__):
-            errors.error(f'Invalid type for value')
+        typecheck(new, self.__class__, f'Invalid type for value')
         self.val = new.val
         self.attrs = new.attrs
     def string(self):
         return String(f'<Type {self.__class__.__name__}>')
     def type(self):
         return 'Type'
+
+class PyType(Type):
+    typename = '_PyType'
+    def __init__(self, val):
+        self.val = val
+        self.typename = '_PyType'
+        self.attrs = {
+            '_set':Method(super().set),
+            '_get':Method(super().get),
+            '_eq':Method(super().eq),
+        }
 
 class Method(Type):
     typename = 'Method'
@@ -158,7 +170,7 @@ class Map(Type):
         if symbol.val in self.attrs:
             return Reference(type(self.attrs[symbol.val]), self.attrs[symbol.val])
         else:
-            errors.error(f'Invalid key {symbol.val}')
+            return None
     def string(self):
         out = '{'
         for key in self.attrs:
@@ -178,7 +190,7 @@ class Reference(Type):
     def eq(self, val):
         if isinstance(val, Reference):
             val = val.to
-        typecheck(val, self.type)
+        typecheck(val, self.type, f'Invalid type for reference')
         self.to.eq(val)
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
@@ -212,7 +224,11 @@ class Func(Type):
         else:
             last = params[-1]
             if isinstance(last, Reference):
-                self.res = last.to.attrs['_call']()
+                self.res = last.to.attrs['_call']
+                if hasattr(self.res, 'attrs'):
+                    self.res = self.res.attrs['_call']()
+                else:
+                    self.res = self.res()
             else:
                 self.res = type(last)
         self.attrs = {
@@ -290,8 +306,6 @@ class List(Type):
             '_index':Method(self.index),
             'sort': Method(self.sort),
         }
-        for arg in args:
-            self.val.append(arg)
     def append(self, val):
         typecheck(val, self.type, f'Invalid type for list item: expected {self.type.typename}, got {val.typename}')
         self.val.append(val)
@@ -302,6 +316,8 @@ class List(Type):
         out = out.rstrip(', ') + ']'
         return String(out)
     def index(self, val):
+        if isinstance(val, Reference):
+            val = val.to
         if not isinstance(val, Number):
             errors.error('Invalid index type')
         if val.val > len(self.val) - 1:

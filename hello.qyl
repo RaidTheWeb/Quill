@@ -1,4 +1,4 @@
-import("stdlib/stdio")
-string: name
-name = stdio.cin("What is your name? ")
-stdio.cout("Hello, " + name)
+import("stdlib/socket")
+socket.socket: s
+s = socket.connect("127.0.0.1", 4000)
+s.send("Hello")

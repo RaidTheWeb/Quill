@@ -1,17 +1,22 @@
 class: file
 file = class() {
 	string: name
-	name = "hello.txt"
+    _pytype: _fileobj
 
 	func: read
 	read = func(string) {
-		return(py("data.String(open('" + name + "').read())"))
+		return(py("data.String(_fileobj.val.read())"))
 	}
 
 	func: write
 	write = func(string: data, number) {
-		py("data.Number(open('" + name + "', 'a+').write('" + data + "'))")
+		py("data.Number(_fileobj.val.write('" + data + "'))")
 	}
+
+    func: close
+    close = func(void) {
+        py("_fileobj.val.close()")
+    }
 }
 
 func: open
@@ -19,5 +24,6 @@ open = func(string: name, file) {
 	file: out
 	out = file()
 	out.name = name
+    out._fileobj = py("data.PyType(__builtins__['open']('" + name + "', 'a+'))")
 	return(out)
 }
