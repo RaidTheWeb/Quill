@@ -1,4 +1,4 @@
-import errors
+from .errors import error
 
 null = None
 
@@ -15,14 +15,14 @@ class Type():
 	def set(self, symbol, val):
 		if symbol.val in self.attrs:
 			if not isinstance(self.attrs[symbol.val], type(val)):
-			 errors.error(f'Bad type for attribute {symbol.val}') # only called on error
+				error(f'Bad type for attribute {symbol.val}') # only called on error
 			self.attrs[symbol.val] = val
 		return val
 	def get(self, symbol):
 		return self.attrs.get(symbol.val, null)
 	def eq(self, new):
 		if not isinstance(new, self.__class__):
-			errors.error(f'Invalid type for value')
+			error(f'Invalid type for value')
 		self.val = new.val
 		self.attrs = new.attrs
 	def string(self):
@@ -56,7 +56,7 @@ class String(Type):
 		return self.val
 	def index(self, index):
 		if index.val > len(self.val) - 1:
-			errors.error('Index too high')
+			error('Index too high')
 		return String(self.val[int(index.val)])
 	def len(self):
 		return Number(len(self.val))
@@ -72,7 +72,6 @@ class Number(Type):
 			'_string':Method(self.string),
 			'_add':Method(self.add),
 			'_type':Method(super().type),
-
 		}
 	def string(self):
 		return String(str(self.val))
@@ -131,7 +130,7 @@ class Map(Type):
 	def set(self, symbol, val):
 		if symbol.val in self.attrs:
 			if type(self.attrs[symbol.val]) != type(val):
-				errors.error(f'Invalid type for key {symbol.val}')
+				error(f'Invalid type for key {symbol.val}')
 			self.attrs[symbol.val] = val
 		else:
 			self.attrs[symbol.val] = val
@@ -139,7 +138,7 @@ class Map(Type):
 		if symbol.val in self.attrs:
 			return Reference(type(self.attrs[symbol.val]), self.attrs[symbol.val])
 		else:
-			errors.error(f'Invalid key {symbol.val}')
+			error(f'Invalid key {symbol.val}')
 	def string(self):
 		out = '{'
 		for key in self.attrs:
@@ -158,7 +157,7 @@ class Reference(Type):
 		if isinstance(val, Reference):
 			val = val.to
 		if not isinstance(val, self.t): # this checks the type
-			errors.error(f'Invalid type {val.type()}')
+			error(f'Invalid type {val.type()}')
 		self.to.eq(val)
 		self.attrs.update(self.to.attrs)
 		self.val = self.to.val
@@ -200,7 +199,7 @@ class Func(Type):
 	def call(self, *args):
 		args = list(args)
 		if len(args) != len(self.params):
-			errors.error('Wrong amount of arguments')
+			error('Wrong amount of arguments')
 		for i in range(len(self.params)):
 			param = self.params[i]
 			name = param.val[1]
@@ -208,14 +207,14 @@ class Func(Type):
 			if isinstance(args[i], Reference):
 				args[i] = args[i].to
 			if type(args[i]) != t:
-				errors.error('Invalid argument type')
+				error('Invalid argument type')
 				self.val.val.globals.set(Symbol(name), args[i])
 		out = self.val.val.run()
 		if isinstance(out, Reference):
 			out = out.to
 		if type(out) != Type:
 			if not isinstance(out, self.res):
-				errors.error('Invalid return type')
+				error('Invalid return type')
 		return out
 	def Return(val):
 		pass
@@ -265,7 +264,7 @@ class List(Type):
 
 	def append(self, val):
 		if not isinstance(val, self.type):
-			errors.error("Invalid Type")
+			error("Invalid Type")
 		else:
 			self.val.append(val)
 
@@ -277,9 +276,9 @@ class List(Type):
 		return String(out)
 	def index(self, val):
 		if not isinstance(val, Number):
-			errors.error('Invalid index type')
+			error('Invalid index type')
 		if val.val > len(self.val) - 1:
-			errors.error('Index too high')
+			error('Index too high')
 		return self.val[int(val.val)]
 	def sort(self):
 		self.val = sorted(self.val)
