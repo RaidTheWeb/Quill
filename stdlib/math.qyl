@@ -54,3 +54,19 @@ max = func(number: a, number: b, number) {
 		return(b)
 	}
 }
+
+func: sin
+sin = func(number: x, number) {
+  return(py("data.Number(__import__('math').sin(x.val))"))
+}
+
+func: cos
+cos = func(number: x, number) {
+	return(py(data.Number("__import__('math').cos(x.val)))
+}
+
+func: tan
+tan = func(number: x, number) {
+	return(py("data.Number(__import__('math').tan(x.val))"))
+}
+
