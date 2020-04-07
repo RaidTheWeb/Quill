@@ -5,12 +5,14 @@ null = None
 def convert(val, attr, fallback):
     if hasattr(val, 'attrs'):
         if attr in val.attrs:
-            return val.attrs[attr].attrs['_call']()
+            return val.attrs[attr].attrs['_call']().val
         return val.val
     else:
         return fallback(val)
 
 def typecheck(val, want, err='Invalid type'):
+    if isinstance(want, Class):
+        want = Class
     if want == PyType:
         return True
     if not isinstance(val, want):
@@ -105,6 +107,10 @@ class Number(Type):
             '_string':Method(self.string),
             '_add':Method(self.add),
             '_sub':Method(self.sub),
+            '_mul':Method(self.mul),
+            '_cmp':Method(self.cmp),
+            '_gt':Method(self.gt),
+            '_lt':Method(self.lt),
             '_type':Method(super().type),
         }
     def string(self):
@@ -113,6 +119,14 @@ class Number(Type):
         return Number(self.val + other.val)
     def sub(self, other):
         return Number(self.val - other.val)
+    def mul(self, other):
+        return Number(self.val * other.val)
+    def cmp(self, other):
+        return Bool(self.val == other.val)
+    def gt(self, other):
+        return Bool(self.val > other.val)
+    def lt(self, other):
+        return Bool(self.val < other.val)
 
 class Symbol(Type):
     typename = 'Symbol'
@@ -174,11 +188,7 @@ class Map(Type):
         else:
             return None
     def string(self):
-        out = '{'
-        for key in self.attrs:
-            out += f'{key}:{self.attrs[key].string().val}, '
-            out = out.rstrip(', ') + '}'
-        return String(out)
+        return String(f'<Map {self.key_t.typename}, {self.val_t.typename}>')
 
 class Reference(Type):
     typename = 'Reference'
@@ -265,9 +275,8 @@ class Func(Type):
         pass
 
 class Class(Type):
-    def __init__(self, scope, block):
+    def __init__(self, block):
         self.val = block
-        self.val.val.globals = scope
         self.typename = 'Class'
         self.attrs = {
             '_set': Method(self.set),
@@ -283,7 +292,7 @@ class Class(Type):
             return self.val.val.globals.get(symbol)
         return self.attrs.get(symbol.val, null)
     def call(self):
-        new = Class(self.val.val.globals, self.val)
+        new = Class(self.val)
         new.attrs = self.attrs
         new.val.val.globals.attrs = self.val.val.globals.attrs
         new.val.val.run()

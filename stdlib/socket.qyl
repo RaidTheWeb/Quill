@@ -10,15 +10,8 @@ socket = class() {
     }
 
     func: send
-    send = func(string: data, void) {
-        py("_socketobj.val.send(bytes(data.val, 'utf-8'))")
-    }
-
-    func: accept
-    accept = func(socket) {
-        socket: out
-        py("conn, addr = _socketobj.val.accept(); out.ip = data.String(addr[0]); out.port = data.Number(addr[1]); out.socketobj.val = conn")
-        return(out)
+    send = func(string: text, number) {
+        return(py("data.Number(_socketobj.val.send(bytes(text.val, 'utf-8')))"))
     }
 }
 
@@ -27,7 +20,7 @@ connect = func(string: ip, number: port, socket) {
     socket: out
     out.ip = ip
     out.port = port
-    out._socketobj = py("socket.socket(socket.AF_INET, socket.SOCK_STREAM)")
-    py("out._socketobj.val.connect((ip.val, int(port.val)))")
+    out._socketobj = py("data.PyType(__import__('socket').socket(__import__('socket').AF_INET, __import__('socket').SOCK_STREAM))")
+    py("out.attrs['_get'].attrs['_call'](data.Symbol('_socketobj')).val.connect((ip.val, int(port.val)))")
     return(out)
 }

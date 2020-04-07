@@ -1,9 +1,9 @@
 func: cout
-cout = func(string: text, void) {
-    py("print('" + text + "')")
+cout = func(string: data, void) {
+    py("print(data.val)")
 }
 
 func: cin
 cin = func(string: prompt, string) {
-    return(py("data.String(input('" + prompt + "'))"))
+    return(py("data.String(input(prompt.val))"))
 }

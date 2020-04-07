@@ -14,6 +14,10 @@ op_names = {
     '+':['add'],
     '-':['sub'],
     '=':['eq'],
+    '==':['cmp'],
+    '>':['gt'],
+    '<':['lt'],
+    '*':['mul'],
     'index':['index']
 }
 
@@ -33,6 +37,15 @@ def call(obj, *args):
     else:
         errors.error(f'Object {obj.string().val} is not callable')
 
+def get_name(scope, name):
+    name = name.split('.')
+    while name:
+        part = name.pop(0)
+        old = scope
+        scope = get(scope, data.Symbol(part))
+        if not scope:
+            errors.error(f'Object {old.string().val} has no attribute {part}')
+    return scope
 
 def get(obj, attr, error=True):
     attr = data.Symbol(attr) # select it and use ctrl-[ and ctrl-]
@@ -67,7 +80,7 @@ def expr(val, scope):
     elif val.type == 'number':
         return data.Number(val.val[0])
     elif val.type == 'decl':
-        t = call(get(scope, data.Symbol(val.val[0])))
+        t = call(get_name(scope, val.val[0]))
         if t == data.Number:
             default = data.Number(0)
         elif t == data.String:
@@ -76,22 +89,19 @@ def expr(val, scope):
             default = data.Func(scope, data.Block(Program(parse.Node('program'))))
             default.val.val.globals = scope
         elif t == data.Class:
-            default = data.Class(scope, data.Block(Program(parse.Node('program'))))
-            default.val.val.globals = scope
+            default = data.Class(data.Block(Program(parse.Node('program'))))
         elif t == data.List:
             default = data.List(data.Type)
+        elif t == data.PyType:
+            default = data.PyType(None)
         else:
-            default = data.Type()
+            try:
+                default = call(t)
+            except:
+                default = t
         scope.set(data.Symbol(val.val[1]), default)
     elif val.type == 'name':
-        name = val.val[0].split('.')
-        while name:
-            part = name.pop(0)
-            old = scope
-            scope = get(scope, data.Symbol(part))
-            if not scope:
-                errors.error(f'Object {old.string().val} has no attribute {part}')
-        return scope
+        return get_name(scope, val.val[0])
     elif val.type == 'call':
         func = expr(val.val[0], scope)
         args = []
@@ -106,8 +116,8 @@ def expr(val, scope):
         func = op(a, data.Symbol(val.val[1]))
         return call(func, expr(val.val[2], scope))
     elif val.type == 'block':
-        program = Program(val.val[0]);
-        program.globals = scope
+        program = Program(val.val[0])
+        #program.globals = scope
         return data.Block(program)
     elif val.type == 'array':
         array = []
@@ -127,18 +137,18 @@ class Program():
         self.globals.set(data.Symbol('import'), data.Method(self._import))
         self.globals.set(data.Symbol('if'), data.Method(self._if))
         self.globals.set(data.Symbol('return'), data.Method(lambda val: val))
-        self.globals.set(data.Symbol('py'), data.Method(lambda x: eval(x.val)))
+        self.globals.set(data.Symbol('py'), data.Method(lambda x: eval(x.val, {**globals(), **self.globals.attrs})))
         self.globals.set(data.Symbol('number'), type_method(data.Number))
         self.globals.set(data.Symbol('string'), type_method(data.String))
         self.globals.set(data.Symbol('func'), type_method(data.Func, self.globals))
-        self.globals.set(data.Symbol('class'), type_method(data.Class, self.globals))
+        self.globals.set(data.Symbol('class'), type_method(data.Class))
         self.globals.set(data.Symbol('list'), type_method(data.List))
         self.globals.set(data.Symbol('range'), type_method(data.Range))
         self.globals.set(data.Symbol('type'), type_method(data.Type))
         self.globals.set(data.Symbol('symbol'), type_method(data.Symbol))
         self.globals.set(data.Symbol('map'), type_method(data.Map))
         self.globals.set(data.Symbol('void'), data.Method(lambda: type(None)))
-
+        self.globals.set(data.Symbol('_pytype'), type_method(data.PyType))
     def print(self, *args): #recursion moment <----- recursion is its own reward
         for val in args: # also i found the problem
             print(call(get(val, '_string')).val) # i'm gonna fix it
@@ -155,12 +165,13 @@ class Program():
     def _if(self, *args):
         args[0].val.globals = self.globals
         if data.Bool(args[1]).val:
-            call(args[0])
+            return call(args[0])
     def run(self):
         for node in self.ast.val[:-1]:
-            expr(node, self.globals)
+            val = expr(node, self.globals)
+            if val:
+                return val
         return expr(self.ast.val[-1], self.globals)
-
 
 def run(ast):
     Program(ast).run()

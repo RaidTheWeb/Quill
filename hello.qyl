@@ -1,4 +1,5 @@
 import("stdlib/socket")
+
 socket.socket: s
 s = socket.connect("127.0.0.1", 4000)
-s.send("Hello")
+s.send("Hello from Quill!")
