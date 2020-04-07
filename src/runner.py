@@ -31,7 +31,7 @@ def call(obj, *args):
 		if isinstance(obj, data.Method): # If we find it, call that
 			return func(*args)
 		return get(obj, 'call').attrs['_call'](*args)
-	elif get(obj, '_call', error=False): # Check for _call method
+	elif get(obj, '_call', error = False): # Check for _call method
 		func = get(obj, '_call')
 		if isinstance(obj, data.Method): # If we find it, call that
 			return func(*args)

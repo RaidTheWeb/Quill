@@ -26,7 +26,9 @@ pow = func(number:a, number:b, number) {
 
 func: abs
 abs = func(number: x, number) {
-	return(+x)
+	if (x < 0) {
+  		return(0 - x)
+	}
 }
 
 func: min
@@ -62,7 +64,7 @@ sin = func(number: x, number) {
 
 func: cos
 cos = func(number: x, number) {
-	return(py(data.Number("__import__('math').cos(x.val)))
+	return(py("data.Number(__import__('math').cos(x.val)"))
 }
 
 func: tan
