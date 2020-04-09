@@ -370,7 +370,7 @@ class Class(Type):
 class List(Type):
     def __init__(self, type, *args):
         for arg in args:
-            typecheck(val, type, f'Invalid type for list item: expected {type.typename}, got {val.typename}')
+            typecheck(arg, type, f'Invalid type for list item: expected {type.typename}, got {arg.typename}')
         self.val = list(args)
         self.type = type
         self.typename = 'List'
