@@ -178,11 +178,14 @@ class Program():
         if data.Bool(args[1]).val:
             return call(args[0])
     def run(self):
-        for node in self.ast.val[:-1]:
-            val = expr(node, self.globals)
-            if val:
-                return val
-        return expr(self.ast.val[-1], self.globals)
+        try:
+            for node in self.ast.val[:-1]:
+                val = expr(node, self.globals)
+                if val:
+                    return val
+            return expr(self.ast.val[-1], self.globals)
+        except Exception as e:
+            errors.error(f'Python threw error: {e}')
 
 def run(ast):
     Program(ast).run()
