@@ -18,6 +18,11 @@ op_names = {
     '>':['gt'],
     '<':['lt'],
     '*':['mul'],
+    '/':['div'],
+    '+=':['addeq'],
+    '-=':['subeq'],
+    '*=':['muleq'],
+    '/=':['diveq'],
     'index':['index']
 }
 
@@ -48,6 +53,8 @@ def get_name(scope, name):
     return scope
 
 def get(obj, attr, error=True):
+    if not obj:
+        errors.error('Object is null')
     attr = data.Symbol(attr) # select it and use ctrl-[ and ctrl-]
     if 'get' in obj.attrs:
         return call(obj.attrs['get'], attr)
@@ -117,7 +124,6 @@ def expr(val, scope):
         return call(func, expr(val.val[2], scope))
     elif val.type == 'block':
         program = Program(val.val[0])
-        #program.globals = scope
         return data.Block(program)
     elif val.type == 'array':
         array = []
@@ -137,7 +143,7 @@ class Program():
         self.globals.set(data.Symbol('import'), data.Method(self._import))
         self.globals.set(data.Symbol('if'), data.Method(self._if))
         self.globals.set(data.Symbol('return'), data.Method(lambda val: val))
-        self.globals.set(data.Symbol('py'), data.Method(lambda x: eval(x.val, {**globals(), **self.globals.attrs})))
+        self.globals.set(data.Symbol('py'), data.Method(self.py))
         self.globals.set(data.Symbol('number'), type_method(data.Number))
         self.globals.set(data.Symbol('string'), type_method(data.String))
         self.globals.set(data.Symbol('func'), type_method(data.Func, self.globals))
@@ -149,6 +155,11 @@ class Program():
         self.globals.set(data.Symbol('map'), type_method(data.Map))
         self.globals.set(data.Symbol('void'), data.Method(lambda: type(None)))
         self.globals.set(data.Symbol('_pytype'), type_method(data.PyType))
+    def py(self, *args):
+        code = args[0].val
+        d = {**globals(), **self.globals.attrs}
+        exec(f'out = {code}', d)
+        return d['out']
     def print(self, *args): #recursion moment <----- recursion is its own reward
         for val in args: # also i found the problem
             print(call(get(val, '_string')).val) # i'm gonna fix it

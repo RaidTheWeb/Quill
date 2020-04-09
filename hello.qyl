@@ -1,5 +1,7 @@
-import("stdlib/socket")
+import("stdlib/stdio")
 
-socket.socket: s
-s = socket.connect("127.0.0.1", 4000)
-s.send("Hello from Quill!")
+number: a
+a = 5
+a *= a
+
+stdio.cout(string(a))

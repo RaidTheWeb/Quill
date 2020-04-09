@@ -24,3 +24,13 @@ connect = func(string: ip, number: port, socket) {
     py("out.attrs['_get'].attrs['_call'](data.Symbol('_socketobj')).val.connect((ip.val, int(port.val)))")
     return(out)
 }
+
+func: create
+create = func(string: ip, number: port, socket) {
+    socket: out
+    out.ip = ip
+    out.port = port
+    out._socketobj = py("data.PyType(__import__('socket').socket(__import__('socket').AF_INET, __import__('socket').SOCK_STREAM))")
+    py("out.attrs['_get'].attrs['_call'](data.Symbol('_socketobj')).val.bind((ip.val, int(port.val)))")
+    return(out)
+}

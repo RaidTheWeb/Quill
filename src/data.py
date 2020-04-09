@@ -26,9 +26,10 @@ class Type():
         self.attrs = {
             '_set':Method(self.set),
             '_get':Method(self.get),
-            '_=':Method(self.eq),
+            '_eq':Method(self.eq),
             '_string':Method(self.string),
             '_type':Method(self.type),
+            '_cmp':Method(self.cmp),
         }
     def set(self, symbol, val):
         if symbol.val in self.attrs:
@@ -44,6 +45,8 @@ class Type():
         self.attrs = new.attrs
     def string(self):
         return String(f'<Type {self.__class__.__name__}>')
+    def cmp(self, other):
+        return Bool(self.val == other.val)
     def type(self):
         return 'Type'
 
@@ -73,7 +76,7 @@ class Method(Type):
 class String(Type):
     typename = 'String'
     def __init__(self, val):
-        self.val = convert(val, '_string', lambda val: val.strip('"'))
+        self.val = convert(val, '_string', lambda val: val.strip('"')).replace('\\r', '\r').replace('\\n', '\n')
         self.typename = 'String'
         self.attrs = {
             '_set':Method(super().set),
@@ -82,6 +85,7 @@ class String(Type):
             '_type': Method(super().type()),
             '_index': Method(self.index),
             '_len': Method(self.len),
+            '_cmp':Method(super().cmp),
             '_add':Method(self.add),
             '_symbol':Method(lambda: Symbol(self.val)),
         }
@@ -95,6 +99,11 @@ class String(Type):
         return Number(len(self.val))
     def add(self, other):
         return String(self.val + other.val)
+    def each(self, block, decl):
+        type, name = decl.val
+        for item in self.val:
+            block.val.globals.attrs[name] = String(item)
+            block.val.run()
 
 class Number(Type):
     typename = 'Number'
@@ -108,7 +117,8 @@ class Number(Type):
             '_add':Method(self.add),
             '_sub':Method(self.sub),
             '_mul':Method(self.mul),
-            '_cmp':Method(self.cmp),
+            '_div':Method(self.div),
+            '_cmp':Method(super().cmp),
             '_gt':Method(self.gt),
             '_lt':Method(self.lt),
             '_type':Method(super().type),
@@ -121,8 +131,8 @@ class Number(Type):
         return Number(self.val - other.val)
     def mul(self, other):
         return Number(self.val * other.val)
-    def cmp(self, other):
-        return Bool(self.val == other.val)
+    def div(self, other):
+        return Number(self.val / other.val)
     def gt(self, other):
         return Bool(self.val > other.val)
     def lt(self, other):
@@ -138,9 +148,13 @@ class Symbol(Type):
             '_get':Method(super().get),
             '_string':Method(self.string),
             '_type':Method(super().type),
+            '_add':Method(self.add),
+            '_cmp':Method(super().cmp),
         }
     def string(self):
         return String(':' + self.val)
+    def add(self, other):
+        return Symbol(self.val + other.val)
 
 class Bool(Type):
     typename = 'Bool'
@@ -153,6 +167,11 @@ class Bool(Type):
             '_string': Method(self.string),
             '_number': Method(self.number),
             '_type':Method(super().type),
+            '_add':Method(self.add),
+            '_sub':Method(self.sub),
+            '_mul':Method(self.mul),
+            '_cmp':Method(super().cmp),
+            '_div':Method(self.div),
         }
     def string(self):
         return String(str(self.val))
@@ -161,6 +180,14 @@ class Bool(Type):
             return Number(1)
         else:
             return Number(0)
+    def add(self, other):
+        return Number(self.val + other.val)
+    def sub(self, other):
+        return Number(self.val - other.val)
+    def mul(self, other):
+        return Number(self.val * other.val)
+    def div(self, other):
+        return Number(self.val / other.val)
 
 class Map(Type):
     typename = 'Map'
@@ -173,8 +200,10 @@ class Map(Type):
             '_set':Method(self.set),
             '_get':Method(self.get),
             '_string':Method(self.string),
+            '_cmp':Method(super().cmp),
             '_type':Method(super().type),
             '_index':Method(lambda val: self.get(Symbol(val))),
+            'each':Method(self.each),
         }
     def set(self, symbol, val):
         if symbol.val in self.attrs:
@@ -189,6 +218,11 @@ class Map(Type):
             return None
     def string(self):
         return String(f'<Map {self.key_t.typename}, {self.val_t.typename}>')
+    def each(self, block, decl):
+        type, name = decl.val
+        for item in self.attrs:
+            block.val.globals.attrs[name] = item
+            block.val.run()
 
 class Reference(Type):
     typename = 'Reference'
@@ -198,12 +232,44 @@ class Reference(Type):
         self.val = to.val
         self.attrs = self.to.attrs
         self.attrs['_eq'] = Method(self.eq)
+        self.attrs['_addeq'] = Method(self.addeq)
+        self.attrs['_subeq'] = Method(self.subeq)
+        self.attrs['_muleq'] = Method(self.muleq)
+        self.attrs['_diveq'] = Method(self.diveq)
         self.typename = to.typename
     def eq(self, val):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
         self.to.eq(val)
+        self.attrs.update(self.to.attrs)
+        self.val = self.to.val
+    def addeq(self, val):
+        if isinstance(val, Reference):
+            val = val.to
+        typecheck(val, self.type, f'Invalid type for reference')
+        self.to.eq(self.to.attrs['_add'].attrs['_call'](val))
+        self.attrs.update(self.to.attrs)
+        self.val = self.to.val
+    def subeq(self, val):
+        if isinstance(val, Reference):
+            val = val.to
+        typecheck(val, self.type, f'Invalid type for reference')
+        self.to.eq(self.to.attrs['_sub'].attrs['_call'](val))
+        self.attrs.update(self.to.attrs)
+        self.val = self.to.val
+    def muleq(self, val):
+        if isinstance(val, Reference):
+            val = val.to
+        typecheck(val, self.type, f'Invalid type for reference')
+        self.to.eq(self.to.attrs['_mul'].attrs['_call'](val))
+        self.attrs.update(self.to.attrs)
+        self.val = self.to.val
+    def diveq(self, val):
+        if isinstance(val, Reference):
+            val = val.to
+        typecheck(val, self.type, f'Invalid type for reference')
+        self.to.eq(self.to.attrs['_div'].attrs['_call'](val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def string(self):
@@ -309,12 +375,13 @@ class List(Type):
         self.type = type
         self.typename = 'List'
         self.attrs = {
-            '_get':    Method(super().get),
-            '_set':    Method(super().set),
-            '_string': Method(self.string),
-            'append':  Method(self.val.append),
+            '_get':Method(super().get),
+            '_set':Method(super().set),
+            '_string':Method(self.string),
+            'append':Method(self.val.append),
             '_type':Method(lambda: String('List')),
             '_index':Method(self.index),
+            'each':Method(self.each),
             'sort': Method(self.sort),
         }
     def append(self, val):
@@ -336,6 +403,11 @@ class List(Type):
         return Reference(self.type, self.val[int(val.val)])
     def sort(self):
         self.val = sorted(self.val)
+    def each(self, block, decl):
+        type, name = decl.val
+        for item in self.val:
+            block.val.globals.attrs[name] = item
+            block.val.run()
 
 class Range(Type):
     def __init__(self, end, start=Number(0), increase=Number(1)):
