@@ -1,4 +1,0 @@
-import("stdlib/stdio")
-import("stdlib/random")
-
-stdio.cout(string(random.random(1.5, 10)))

@@ -8,8 +8,8 @@ import random as r
 def random(*args):
     if len(args) < 2:
         errors.error(f'Random needs 2 arguments, but only got {len(args)}')
-    a = args[0].val
-    b = args[1].val
+    a = float(args[0].val)
+    b = float(args[1].val)
 
     if round(a) != a or round(b) != b:
         return data.Number(r.uniform(a, b))
