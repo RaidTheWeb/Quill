@@ -1,4 +1,4 @@
-import("test")
 import("stdlib/stdio")
+import("stdlib/random")
 
-stdio.cout(string(test.y(5)))
+stdio.cout(string(random.random(1.5, 10)))

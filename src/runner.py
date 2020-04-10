@@ -177,9 +177,10 @@ class Program():
             self.globals.set(data.Symbol(name.split('/')[-1]), program.globals)
         except FileNotFoundError:
             try:
-                open(f'{name}.py')
+                out = {}
+                exec(compile(open(f'{name}.py').read(), 'quill', 'exec'), out)
                 map = data.Map(data.Symbol, data.Type)
-                map.attrs.update(__import__(name).attrs)
+                map.attrs.update(out['attrs'])
                 self.globals.set(data.Symbol(name.split('/')[-1]), map)
             except FileNotFoundError:
                 errors.error('File not found')
