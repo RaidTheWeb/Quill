@@ -1,7 +1,4 @@
+import("test")
 import("stdlib/stdio")
 
-number: a
-a = 5
-a *= a
-
-stdio.cout(string(a))
+stdio.cout(string(test.y(5)))
