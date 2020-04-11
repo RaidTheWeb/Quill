@@ -5,7 +5,7 @@ null = None
 def convert(val, attr, fallback):
     if hasattr(val, 'attrs'):
         if attr in val.attrs:
-            return val.attrs[attr].attrs['_call']().val
+            return get(val.attrs[attr], '_call')().val
         return val.val
     else:
         return fallback(val)
@@ -17,6 +17,12 @@ def typecheck(val, want, err='Invalid type'):
         return True
     if not isinstance(val, want):
         errors.error(err)
+
+def get(val, attr):
+    if attr in val.attrs:
+        return val.attrs[attr]
+    else:
+        errors.error(f'Object {val.string().val} has no attribute {attr}')
 
 class Type():
     typename = 'Type'
@@ -248,28 +254,28 @@ class Reference(Type):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
-        self.to.eq(self.to.attrs['_add'].attrs['_call'](val))
+        self.to.eq(get(get(self.to, '_add'), '_call').attrs['_call'](val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def subeq(self, val):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
-        self.to.eq(self.to.attrs['_sub'].attrs['_call'](val))
+        self.to.eq(get(get(self.to, '_sub'), '_call').attrs['_call'](val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def muleq(self, val):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
-        self.to.eq(self.to.attrs['_mul'].attrs['_call'](val))
+        self.to.eq(get(get(self.to, '_mul'), '_call').attrs['_call'](val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def diveq(self, val):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
-        self.to.eq(self.to.attrs['_div'].attrs['_call'](val))
+        self.to.eq(get(get(self.to, '_div'), '_call').attrs['_call'](val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def string(self):
@@ -302,9 +308,9 @@ class Func(Type):
         else:
             last = params[-1]
             if isinstance(last, Reference):
-                self.res = last.to.attrs['_call']
+                self.res = get(last.to, '_call')
                 if hasattr(self.res, 'attrs'):
-                    self.res = self.res.attrs['_call']()
+                    self.res = get(self.res, '_call')()
                 else:
                     self.res = self.res()
             else:
@@ -370,7 +376,7 @@ class Class(Type):
 class List(Type):
     def __init__(self, type, *args):
         if isinstance(type, Reference):
-            type = type.to.attrs['_call']()
+            type = get(type.to, '_call')()
         for arg in args:
             typecheck(arg, type, f'Invalid type for list item: expected {type.typename}, got {arg.typename}')
         self.val = list(args)
@@ -400,8 +406,10 @@ class List(Type):
             val = val.to
         if not isinstance(val, Number):
             errors.error('Invalid index type')
-        if val.val > len(self.val) - 1:
+            return
+        if val.val > len(self.val) - 1 or not self.val:
             errors.error('Index too high')
+            return
         return Reference(self.type, self.val[int(val.val)])
     def sort(self):
         self.val = sorted(self.val)

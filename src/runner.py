@@ -1,6 +1,8 @@
 import data
 import errors
 import parse
+import os
+import os.path
 
 PRIVATE = 2
 PROTECTED = 1
@@ -143,7 +145,10 @@ def expr(val, scope):
         array = []
         for item in val.val[0].val:
             array.append(expr(item, scope))
-        return data.List(type(array[0]), *array)
+        if val.val[0].val:
+            return data.List(type(array[0]), *array)
+        else:
+            return data.List(data.Type)
     elif val.type == 'index':
         index = op(expr(val.val[0], scope), data.Symbol('index'))
         return call(index, expr(val.val[1], scope))
@@ -180,15 +185,22 @@ class Program():
     def _import(self, *args):
         name = args[0].val
         try:
-            file = open(f'{name}.qyl')
+            if name.startswith('stdlib'):
+                file = open(__file__.rstrip('/src/runner.py') + f'/{name}.qyl')
+            else:
+                file = open(os.path.join(os.getcwd(), f'{name}.qyl'))
             ast = parse.Parser().parse(parse.Lexer().tokenize(file.read()))
             program = Program(ast)
             program.run()
             self.globals.set(data.Symbol(name.split('/')[-1]), program.globals)
         except FileNotFoundError:
             try:
+                if name.startswith('stdlib'):
+                    file = open(__file__.rstrip('/src/runner.py') + f'/{name}.py')
+                else:
+                    file = open(os.path.join(os.getcwd(), f'{name}.py'))
                 out = {}
-                exec(compile(open(f'{name}.py').read(), 'quill', 'exec'), out)
+                exec(compile(file.read(), 'quill', 'exec'), out)
                 map = data.Map(data.Symbol, data.Type)
                 map.attrs.update(out['attrs'])
                 self.globals.set(data.Symbol(name.split('/')[-1]), map)
@@ -199,6 +211,8 @@ class Program():
         if data.Bool(args[1]).val:
             return call(args[0])
     def run(self):
+        if not self.ast.val:
+            return
         try:
             for node in self.ast.val[:-1]:
                 val = expr(node, self.globals)
