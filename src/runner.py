@@ -106,7 +106,17 @@ def expr(val, scope):
                 default = call(t)
             except:
                 default = t
-        scope.set(data.Symbol(val.val[1]), default)
+        if len(val.val) == 3:
+            func = get(scope, val.val[0]).to
+            args = []
+            for arg in val.val[2].val:
+                if arg.type == 'decl':
+                    args.append(arg)
+                else:
+                    args.append(expr(arg, scope))
+            scope.set(data.Symbol(val.val[1]), call(func, *args))
+        else:
+            scope.set(data.Symbol(val.val[1]), default)
     elif val.type == 'name':
         return get_name(scope, val.val[0])
     elif val.type == 'call':
@@ -196,6 +206,7 @@ class Program():
                     return val
             return expr(self.ast.val[-1], self.globals)
         except Exception as e:
+            raise e
             errors.error(f'Python threw error: {type(e).__name__} {e}')
 
 def run(ast):

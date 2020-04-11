@@ -57,6 +57,10 @@ class Parser(sly.Parser):
     def expr(self, t):
         return Node('decl', t.NAME0, t.NAME1)
 
+    @_('NAME ":" NAME "(" list ")"')
+    def expr(self, t):
+        return Node('decl', t.NAME0, t.NAME1, t.list)
+
     @_('expr "(" list ")" list')
     def expr(self, t):
         return Node('call', t.expr, Node('list', *(t.list1.val + t.list0.val)))

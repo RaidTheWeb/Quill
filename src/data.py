@@ -369,6 +369,8 @@ class Class(Type):
 
 class List(Type):
     def __init__(self, type, *args):
+        if isinstance(type, Reference):
+            type = type.to.attrs['_call']()
         for arg in args:
             typecheck(arg, type, f'Invalid type for list item: expected {type.typename}, got {arg.typename}')
         self.val = list(args)
