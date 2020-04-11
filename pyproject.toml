@@ -6,10 +6,9 @@ requires = ["poetry>=0.12"]
 [tool.poetry]
 authors = ["Solomon Jackson  <jacksongang3000@gmail.com>"]
 description = ""
-name = "lang"
+name = "quill-repl"
 version = "0.1.0"
 [tool.poetry.dependencies]
 python = "^3.7"
 sly = "^0.4.0"
-termcolor = "^1.1"
 [tool.poetry.dev-dependencies]
