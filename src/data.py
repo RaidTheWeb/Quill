@@ -1,4 +1,5 @@
 import errors
+import copy
 
 null = None
 
@@ -79,6 +80,8 @@ def get(obj, attr, error=True):
             return
 
 def op(obj, op):
+    if not obj:
+        errors.error('Object is null')
     if op.val not in obj.attrs:
         if op.val in op_names:
             for name in op_names[op.val]:
@@ -367,7 +370,6 @@ class Func(Type):
     typename = 'Func'
     def __init__(self, scope, block, *params):
         self.val = block
-        self.val.val.globals = scope
         self.params = params[:-1] # what is expected
         self.typename = 'Func'
         if not params:
@@ -389,6 +391,11 @@ class Func(Type):
             '_call':Method(self.call),
         }
     def call(self, *args):
+        run = type(self.val.val)(self.val.val.ast)
+        for attr in self.val.val.globals.attrs:
+            val = self.val.val.globals.attrs[attr]
+            if isinstance(val, (Map, Class, Func)):
+                run.globals.attrs[attr] = val
         args = list(args)
         if len(args) != len(self.params):
             errors.error('Wrong amount of arguments')
@@ -401,8 +408,8 @@ class Func(Type):
                 args[i] = args[i].to
             if not typecheck(args[i], t, f'Invalid argument type: expected {t.typename}, got {args[i].typename}'):
                 return
-            self.val.val.globals.set(Symbol(name), args[i])
-        out = self.val.val.run()
+            run.globals.set(Symbol(name), args[i])
+        out = run.run()
         if isinstance(out, Reference):
             out = out.to
         if type(out) != Type:

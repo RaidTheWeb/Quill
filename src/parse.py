@@ -19,6 +19,7 @@ class Node():
 class Lexer(sly.Lexer):
     tokens = {NEWLINE, BOOL, NAME, STRING, SYMBOL, NUMBER}
     ignore = ' \t'
+    ignore_comment = r'#.*?'
     literals = { "(", ")", "{", "}", ",", ".", ":", "[", "]"}
 
     NEWLINE = r'\n'

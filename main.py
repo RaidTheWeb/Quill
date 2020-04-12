@@ -30,9 +30,6 @@ else:
     l = parse.Lexer()
     p = parse.Parser()
 
-    print('\033[1A' + ' ' * 64 + '\r', end='')
-    print('\033[1A' + ' ' * 64 + '\r', end='')
-
     program = runner.Program(parse.Node('program'))
     while True:
         code = getline()
