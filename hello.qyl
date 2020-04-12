@@ -1,4 +1,11 @@
 import("stdlib/stdio")
 
-number: a(5)
-stdio.cout(string(a))
+func: f
+f = func(number: n, number) {
+    if (n == 0) {
+        return(1)
+    }
+    return(f(0) * f(n - 1))
+}
+
+stdio.cout(string(f(5)))

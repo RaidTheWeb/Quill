@@ -20,9 +20,6 @@ if sys.argv[1:]:
     l = parse.Lexer()
     p = parse.Parser()
 
-    print('\033[1A' + ' ' * 64 + '\r', end='')
-    print('\033[1A' + ' ' * 64 + '\r', end='')
-
     code = open(sys.argv[1]).read()
 
     tree = p.parse(l.tokenize(code))

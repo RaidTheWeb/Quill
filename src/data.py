@@ -17,12 +17,79 @@ def typecheck(val, want, err='Invalid type'):
         return True
     if not isinstance(val, want):
         errors.error(err)
+        return False
+    return True
 
-def get(val, attr):
-    if attr in val.attrs:
-        return val.attrs[attr]
+op_names = {
+    '+':['add'],
+    '-':['sub'],
+    '=':['eq'],
+    '==':['cmp'],
+    '>':['gt'],
+    '<':['lt'],
+    '*':['mul'],
+    '/':['div'],
+    '+=':['addeq'],
+    '-=':['subeq'],
+    '*=':['muleq'],
+    '/=':['diveq'],
+    'index':['index']
+}
+
+def ref(obj):
+    if isinstance(obj, Reference):
+        return obj.to
+    return obj
+
+def call(obj, *args):
+    obj = ref(obj)
+    if isinstance(obj, Method):
+        return obj.attrs['_call'](*args)
+    if get(obj, 'call', error=False):
+        return get(obj, 'call').attrs['_call'](*args)
+    elif get(obj, '_call', error=False):
+        return get(obj, '_call').attrs['_call'](*args)
     else:
-        errors.error(f'Object {val.string().val} has no attribute {attr}')
+        errors.error(f'Object {obj.string().val} is not callable')
+
+def get_name(scope, name):
+    name = name.split('.')
+    while name:
+        part = name.pop(0)
+        old = scope
+        scope = get(scope, Symbol(part))
+        if not scope:
+            errors.error(f'Object {old.string().val} has no attribute {part}')
+    return scope
+
+def get(obj, attr, error=True):
+    if not obj:
+        errors.error('Object is null')
+    attr = Symbol(attr) # select it and use ctrl-[ and ctrl-]
+    if 'get' in obj.attrs:
+        return call(obj.attrs['get'], attr)
+    elif '_get' in obj.attrs:
+        return call(obj.attrs['_get'], attr)
+    elif attr.val in obj.attrs:
+        return obj.attrs[attr.val]
+    else:
+        if error:
+            errors.error(f'Cannot get attribute of object {obj.string().val}')
+        else:
+            return
+
+def op(obj, op):
+    if op.val not in obj.attrs:
+        if op.val in op_names:
+            for name in op_names[op.val]:
+                if get(obj, name, error=False):
+                    return get(obj, Symbol(name))
+                elif get(obj, '_' + name, error=False):
+                    return get(obj, Symbol('_' + name))
+                else:
+                    errors.error(f'{obj.string().val} does not have operator {op.string().val}')
+        else:
+            return get(obj, Symbol(op))
 
 class Type():
     typename = 'Type'
@@ -325,13 +392,15 @@ class Func(Type):
         args = list(args)
         if len(args) != len(self.params):
             errors.error('Wrong amount of arguments')
+            return
         for i in range(len(self.params)):
             param = self.params[i]
             name = param.val[1]
             t = self.val.val.globals.get(Symbol(param.val[0])).val()
             if isinstance(args[i], Reference):
                 args[i] = args[i].to
-            typecheck(args[i], t, f'Invalid argument type: expected {t.typename}, got {args[i].typename}')
+            if not typecheck(args[i], t, f'Invalid argument type: expected {t.typename}, got {args[i].typename}'):
+                return
             self.val.val.globals.set(Symbol(name), args[i])
         out = self.val.val.run()
         if isinstance(out, Reference):

@@ -12,84 +12,13 @@ rw = lambda name: len(name) - len(name.lstrip('_'))
 
 type_method = lambda type, *other: data.Method(lambda *args: type if not args or len(args) < len(other) else type(*other, *args))
 
-op_names = {
-    '+':['add'],
-    '-':['sub'],
-    '=':['eq'],
-    '==':['cmp'],
-    '>':['gt'],
-    '<':['lt'],
-    '*':['mul'],
-    '/':['div'],
-    '+=':['addeq'],
-    '-=':['subeq'],
-    '*=':['muleq'],
-    '/=':['diveq'],
-    'index':['index']
-}
-
-def ref(obj):
-    if isinstance(obj, data.Reference):
-        return obj.to
-    return obj
-
-def call(obj, *args):
-    obj = ref(obj)
-    if isinstance(obj, data.Method):
-        return obj.attrs['_call'](*args)
-    if get(obj, 'call', error=False):
-        return get(obj, 'call').attrs['_call'](*args)
-    elif get(obj, '_call', error=False):
-        return get(obj, '_call').attrs['_call'](*args)
-    else:
-        errors.error(f'Object {obj.string().val} is not callable')
-
-def get_name(scope, name):
-    name = name.split('.')
-    while name:
-        part = name.pop(0)
-        old = scope
-        scope = get(scope, data.Symbol(part))
-        if not scope:
-            errors.error(f'Object {old.string().val} has no attribute {part}')
-    return scope
-
-def get(obj, attr, error=True):
-    if not obj:
-        errors.error('Object is null')
-    attr = data.Symbol(attr) # select it and use ctrl-[ and ctrl-]
-    if 'get' in obj.attrs:
-        return call(obj.attrs['get'], attr)
-    elif '_get' in obj.attrs:
-        return call(obj.attrs['_get'], attr)
-    elif attr.val in obj.attrs:
-        return obj.attrs[attr.val]
-    else:
-        if error:
-            errors.error(f'Cannot get attribute of object {obj.string().val}')
-        else:
-            return
-
-def op(obj, op):
-    if op.val not in obj.attrs:
-        if op.val in op_names:
-            for name in op_names[op.val]:
-                if get(obj, name, error=False):
-                    return get(obj, data.Symbol(name))
-                elif get(obj, '_' + name, error=False):
-                    return get(obj, data.Symbol('_' + name))
-                else:
-                    errors.error(f'{obj.string().val} does not have operator {op.string().val}')
-        else:
-            return get(obj, data.Symbol(op))
-
 def expr(val, scope):
     if val.type == 'string':
         return data.String(val.val[0])
     elif val.type == 'number':
         return data.Number(val.val[0])
     elif val.type == 'decl':
-        t = call(get_name(scope, val.val[0]))
+        t = data.call(data.get_name(scope, val.val[0]))
         if t == data.Number:
             default = data.Number(0)
         elif t == data.String:
@@ -105,22 +34,22 @@ def expr(val, scope):
             default = data.PyType(None)
         else:
             try:
-                default = call(t)
+                default = data.call(t)
             except:
                 default = t
         if len(val.val) == 3:
-            func = get(scope, val.val[0]).to
+            func = data.get(scope, val.val[0]).to
             args = []
             for arg in val.val[2].val:
                 if arg.type == 'decl':
                     args.append(arg)
                 else:
                     args.append(expr(arg, scope))
-            scope.set(data.Symbol(val.val[1]), call(func, *args))
+            scope.set(data.Symbol(val.val[1]), data.call(func, *args))
         else:
             scope.set(data.Symbol(val.val[1]), default)
     elif val.type == 'name':
-        return get_name(scope, val.val[0])
+        return data.get_name(scope, val.val[0])
     elif val.type == 'call':
         func = expr(val.val[0], scope)
         args = []
@@ -129,16 +58,16 @@ def expr(val, scope):
                 args.append(arg)
             else:
                 args.append(expr(arg, scope))
-        return call(func, *args)
+        return data.call(func, *args)
     elif val.type == 'op':
         a = expr(val.val[0], scope)
-        func = op(a, data.Symbol(val.val[1]))
-        return call(func, expr(val.val[2], scope))
+        func = data.op(a, data.Symbol(val.val[1]))
+        return data.call(func, expr(val.val[2], scope))
     elif val.type == 'block':
         program = Program(val.val[0])
         for attr in scope.attrs:
             val = scope.attrs[attr]
-            if isinstance(val, data.Map):
+            if isinstance(val, (data.Map, data.Class, data.Func)):
                 program.globals.attrs[attr] = val
         return data.Block(program)
     elif val.type == 'array':
@@ -150,10 +79,10 @@ def expr(val, scope):
         else:
             return data.List(data.Type)
     elif val.type == 'index':
-        index = op(expr(val.val[0], scope), data.Symbol('index'))
-        return call(index, expr(val.val[1], scope))
+        index = data.op(expr(val.val[0], scope), data.Symbol('index'))
+        return data.call(indedata.x, expr(val.val[1], scope))
     elif val.type == 'child':
-        return get(expr(val.val[0], scope), val.val[1])
+        return data.get(expr(val.val[0], scope), val.val[1])
 
 class Program():
     def __init__(self, ast):
@@ -181,12 +110,12 @@ class Program():
         return d['out']
     def print(self, *args): #recursion moment <----- recursion is its own reward
         for val in args: # also i found the problem
-            print(call(get(val, '_string')).val) # i'm gonna fix it
+            print(data.call(data.get(val, '_string')).val) # i'm gonna fix it
     def _import(self, *args):
         name = args[0].val
         try:
             if name.startswith('stdlib'):
-                file = open(__file__.rstrip('/src/runner.py') + f'/{name}.qyl')
+                file = open((__file__.rstrip('/src/runner.py') + f'/{name}.qyl').lstrip('/'))
             else:
                 file = open(os.path.join(os.getcwd(), f'{name}.qyl'))
             ast = parse.Parser().parse(parse.Lexer().tokenize(file.read()))
@@ -196,7 +125,7 @@ class Program():
         except FileNotFoundError:
             try:
                 if name.startswith('stdlib'):
-                    file = open(__file__.rstrip('/src/runner.py') + f'/{name}.py')
+                    file = open((__file__.rstrip('/src/runner.py') + f'/{name}.py').lstrip('/'))
                 else:
                     file = open(os.path.join(os.getcwd(), f'{name}.py'))
                 out = {}
@@ -209,7 +138,7 @@ class Program():
     def _if(self, *args):
         args[0].val.globals = self.globals
         if data.Bool(args[1]).val:
-            return call(args[0])
+            return data.call(args[0])
     def run(self):
         if not self.ast.val:
             return
