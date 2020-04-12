@@ -1,13 +1,46 @@
 import sys
-sys.path.append('./src')
+sys.path.append((__file__.rstrip('/main.py') + '/src').lstrip('/'))
 
 import parse
 import runner
+import errors
 
-l = parse.Lexer()
-p = parse.Parser()
+def getline():
+    try:
+        line = input('> ')
+        return line
+    except KeyboardInterrupt:
+        print()
+        return getline()
+    except EOFError:
+        sys.exit(0)
 
-code = open(sys.argv[1]).read()
+if sys.argv[1:]:
 
-tree = p.parse(l.tokenize(code))
-runner.run(tree)
+    l = parse.Lexer()
+    p = parse.Parser()
+
+    print('\033[1A' + ' ' * 64 + '\r', end='')
+    print('\033[1A' + ' ' * 64 + '\r', end='')
+
+    code = open(sys.argv[1]).read()
+
+    tree = p.parse(l.tokenize(code))
+    runner.run(tree)
+else:
+    errors.setno()
+
+    l = parse.Lexer()
+    p = parse.Parser()
+
+    print('\033[1A' + ' ' * 64 + '\r', end='')
+    print('\033[1A' + ' ' * 64 + '\r', end='')
+
+    program = runner.Program(parse.Node('program'))
+    while True:
+        code = getline()
+        tree = p.parse(l.tokenize(code))
+        program.ast = tree
+        val = program.run()
+        if val:
+            program.print(val)

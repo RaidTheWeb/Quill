@@ -1,37 +1,41 @@
 import sly
+import errors
 
 class Node():
-	def __init__(self, type, *val):
-		self.type = type
-		self.val = list(val)
-	def __repr__(self):
-		return self.string(0).rstrip('\n')
-	def string(self, n):
-		out = f'{"    " * n}{self.type}\n'
-		for value in self.val:
-			if isinstance(value, Node):
-				out += value.string(n + 1)
-			else:
-				out += f'{"    " * (n + 1)}{value}\n'
-		return out
+    def __init__(self, type, *val):
+        self.type = type
+        self.val = list(val)
+    def __repr__(self):
+        return self.string(0).rstrip('\n')
+    def string(self, n):
+        out = f'{"    " * n}{self.type}\n'
+        for value in self.val:
+            if isinstance(value, Node):
+                out += value.string(n + 1)
+            else:
+                out += f'{"    " * (n + 1)}{value}\n'
+        return out
 
 class Lexer(sly.Lexer):
-	tokens = {NEWLINE, BOOL, NAME, STRING, SYMBOL, NUMBER}
-	literals = { "(", ")", "{", "}", ",", ".", ":", "[", "]"}
-	ignore = ' \t'
-	ignore_comment = r'#.*'
-	ignore_comment2 = '#-(\n|.)*-#'
+    tokens = {NEWLINE, BOOL, NAME, STRING, SYMBOL, NUMBER}
+    ignore = ' \t'
+    literals = { "(", ")", "{", "}", ",", ".", ":", "[", "]"}
 
+    NEWLINE = r'\n'
+    STRING = r'".*?"'
+    BOOL = r'(true|false)'
+    NUMBER = r'-?[0-9]+(\.[0-9]+)?'
+    SYMBOL = r':[^ \t\n(){}".,:\]\[]+(\.[^ \t\n(){}".:,+\]\[]+)*'
+    NAME = r'[^ \t\n(){}".,:\]\[]+(\.[^ \t\n(){}".,:+\]\[]+)*' # here
 
-	NEWLINE = r'\n'
-	STRING = r'".*?"'
-	BOOL = r'(true|false)'
-	NUMBER = r'-?[0-9]+(\.[0-9]+)?'
-	SYMBOL = r':[^ \t\n(){}".,:\]\[]+(\.[^ \t\n(){}".,+\]\[]+)*'
-	NAME = r'[^ \t\n(){}".,:\]\[]+(\.[^ \t\n(){}".,+\]\[]+)*' # here
+    def error(self, t):
+        errors.error('Syntax error')
 
 class Parser(sly.Parser):
     tokens = Lexer.tokens
+
+    def error(self, t):
+        errors.error('Syntax error')
 
     @_('')
     def program(self, t):
@@ -56,6 +60,10 @@ class Parser(sly.Parser):
     @_('NAME ":" NAME')
     def expr(self, t):
         return Node('decl', t.NAME0, t.NAME1)
+
+    @_('NAME ":" NAME "(" list ")"')
+    def expr(self, t):
+        return Node('decl', t.NAME0, t.NAME1, t.list)
 
     @_('expr "(" list ")" list')
     def expr(self, t):
