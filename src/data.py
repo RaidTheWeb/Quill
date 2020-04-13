@@ -149,6 +149,9 @@ class Method(Type):
     def string(self):
         return String(f'<Method {id(self.val)}>')
 
+class LazyMethod(Method):
+    pass
+
 class String(Type):
     typename = 'String'
     def __init__(self, val):
@@ -250,7 +253,7 @@ class Bool(Type):
             '_div':Method(self.div),
         }
     def string(self):
-        return String(str(self.val))
+        return String(str(self.val).lower())
     def number(self):
         if self.val == True:
             return Number(1)
@@ -324,28 +327,28 @@ class Reference(Type):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
-        self.to.eq(get(get(self.to, '_add'), '_call').attrs['_call'](val))
+        self.to.eq(get(get(self.to, '_add'), '_call')(val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def subeq(self, val):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
-        self.to.eq(get(get(self.to, '_sub'), '_call').attrs['_call'](val))
+        self.to.eq(get(get(self.to, '_sub'), '_call')(val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def muleq(self, val):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
-        self.to.eq(get(get(self.to, '_mul'), '_call').attrs['_call'](val))
+        self.to.eq(get(get(self.to, '_mul'), '_call')(val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def diveq(self, val):
         if isinstance(val, Reference):
             val = val.to
         typecheck(val, self.type, f'Invalid type for reference')
-        self.to.eq(get(get(self.to, '_div'), '_call').attrs['_call'](val))
+        self.to.eq(get(get(self.to, '_div'), '_call')(val))
         self.attrs.update(self.to.attrs)
         self.val = self.to.val
     def string(self):
@@ -496,12 +499,13 @@ class List(Type):
             block.val.run()
 
 class Range(Type):
-    def __init__(self, end, start=Number(0), increase=Number(1)):
+    def __init__(self, end, start=Number(0), inc=Number(1)):
+        end = ref(end)
         typecheck(end, Number, f'Invalid type for range end: expected number, got {end.typename}')
         self.typename = 'Range'
-        self.val = List(Number)
-        for i in range(int(start.val), int(end.val), int(increase.val)):
-            self.val.append(Number(i))
+        self.val = start
+        self.end = end
+        self.inc = inc
 
         self.attrs = {
             '_set':Method(super().set),
@@ -511,6 +515,7 @@ class Range(Type):
         }
     def each(self, block, decl):
         type, name = decl.val
-        for item in self.val.val:
-            block.val.globals.attrs[name] = item
+        while self.val.lt(self.end).val:
+            block.val.globals.attrs[name] = Number(self.val.val)
             block.val.run()
+            self.val.val += self.inc.val

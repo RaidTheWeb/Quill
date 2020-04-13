@@ -54,7 +54,7 @@ def expr(val, scope):
         func = expr(val.val[0], scope)
         args = []
         for arg in val.val[1].val:
-            if arg.type == 'decl':
+            if arg.type == 'decl' or isinstance(data.ref(func), data.LazyMethod):
                 args.append(arg)
             else:
                 args.append(expr(arg, scope))
@@ -83,6 +83,11 @@ def expr(val, scope):
         return data.call(indedata.x, expr(val.val[1], scope))
     elif val.type == 'child':
         return data.get(expr(val.val[0], scope), val.val[1])
+    elif val.type == 'bool':
+        if val.val[0] == 'true':
+            return data.Bool(True)
+        else:
+            return data.Bool(False)
 
 class Program():
     def __init__(self, ast):
@@ -90,8 +95,11 @@ class Program():
         self.globals = data.Map(data.Symbol, data.Type)
         self.globals.set(data.Symbol('import'), data.Method(self._import))
         self.globals.set(data.Symbol('if'), data.Method(self._if))
+        self.globals.set(data.Symbol('while'), data.LazyMethod(self._while))
         self.globals.set(data.Symbol('return'), data.Method(lambda val: val))
         self.globals.set(data.Symbol('py'), data.Method(self.py))
+        self.globals.set(data.Symbol('inf'), data.Number(float('inf')))
+        self.globals.set(data.Symbol('infinity'), data.Number(float('inf')))
         self.globals.set(data.Symbol('number'), type_method(data.Number))
         self.globals.set(data.Symbol('string'), type_method(data.String))
         self.globals.set(data.Symbol('func'), type_method(data.Func, self.globals))
@@ -101,6 +109,7 @@ class Program():
         self.globals.set(data.Symbol('type'), type_method(data.Type))
         self.globals.set(data.Symbol('symbol'), type_method(data.Symbol))
         self.globals.set(data.Symbol('map'), type_method(data.Map))
+        self.globals.set(data.Symbol('bool'), type_method(data.Bool))
         self.globals.set(data.Symbol('void'), data.Method(lambda: type(None)))
         self.globals.set(data.Symbol('_pytype'), type_method(data.PyType))
     def py(self, *args):
@@ -139,6 +148,14 @@ class Program():
         args[0].val.globals = self.globals
         if data.Bool(args[1]).val:
             return data.call(args[0])
+    def _while(self, *args):
+        args = list(args)
+        args[0] = expr(args[0], self.globals)
+        args[0].val.globals = self.globals
+        out = None
+        while data.Bool(expr(args[1], self.globals)).val:
+            out = data.call(args[0])
+        return out
     def run(self):
         if not self.ast.val:
             return

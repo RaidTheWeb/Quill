@@ -16,7 +16,7 @@ The available types for variables are number, string, list, class, symbol, map, 
 Most types, like func or class, require that you call them directly to set them up.
 However, these types take what is called a block as an argument.
 A block is just a program inside two curly brackets.
-However, typing stuff like 
+However, typing stuff like
 ```
 func({
   <code>
@@ -70,5 +70,5 @@ range(10).each(number: i) {
   print(i)
 }
 ```
-Please note that Quill is in active beta. New features will be added often.
-
+Please note that Quill is in active beta. New features will be added often. For more info, check out
+[the website](https://quill-language.github.io).

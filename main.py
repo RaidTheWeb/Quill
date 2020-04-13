@@ -25,6 +25,7 @@ if sys.argv[1:]:
     tree = p.parse(l.tokenize(code))
     runner.run(tree)
 else:
+    print('Quill v 1.0')
     errors.setno()
 
     l = parse.Lexer()
