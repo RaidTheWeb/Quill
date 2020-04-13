@@ -20,21 +20,16 @@ if sys.argv[1:]:
     l = parse.Lexer()
     p = parse.Parser()
 
-    print('\033[1A' + ' ' * 64 + '\r', end='')
-    print('\033[1A' + ' ' * 64 + '\r', end='')
-
     code = open(sys.argv[1]).read()
 
     tree = p.parse(l.tokenize(code))
     runner.run(tree)
 else:
+    print('Quill v 1.0')
     errors.setno()
 
     l = parse.Lexer()
     p = parse.Parser()
-
-    print('\033[1A' + ' ' * 64 + '\r', end='')
-    print('\033[1A' + ' ' * 64 + '\r', end='')
 
     program = runner.Program(parse.Node('program'))
     while True:

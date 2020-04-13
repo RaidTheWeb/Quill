@@ -1,4 +1,1 @@
 import("stdlib/stdio")
-
-number: a(5)
-stdio.cout(string(a))

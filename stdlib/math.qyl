@@ -1,0 +1,74 @@
+number: e
+e = 2.718281828459045
+
+number: pi
+pi = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986
+
+func: fibonacci
+fibonacci = func(number: n, number) {
+    if (n == 0) {
+        return(0)
+    }
+	if (n == 1) {
+		return(1)
+	}
+	return(fibonacci(n - 2) + fibonacci(n - 1))
+}
+
+func: pow
+pow = func(number: a, number: b, number) {
+	number: result
+	result = b
+	range(b, 1, -1).each() {
+		result += a * a
+	}
+	return(result)
+}
+
+func: abs
+abs = func(number: x, number) {
+	if (x < 0) {
+  		return(0 - x)
+	}
+}
+
+func: min
+min = func(number: a, number: b, number) {
+	if (a == b) {
+		return(a)
+	}
+	if (b > a) {
+		return(a)
+	}
+	if (a > b) {
+		return(b)
+	}
+}
+
+func: max
+max = func(number: a, number: b, number) {
+	if (a == b) {
+		return(a)
+	}
+	if (a > b) {
+		return(a)
+	}
+	if (b > a) {
+		return(b)
+	}
+}
+
+func: sin
+sin = func(number: x, number) {
+  return(py("data.Number(__import__('math').sin(x.val))"))
+}
+
+func: cos
+cos = func(number: x, number) {
+	return(py("data.Number(__import__('math').cos(x.val)"))
+}
+
+func: tan
+tan = func(number: x, number) {
+	return(py("data.Number(__import__('math').tan(x.val))"))
+}
