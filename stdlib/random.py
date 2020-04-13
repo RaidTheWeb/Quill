@@ -1,11 +1,9 @@
-import sys
-sys.path.append('../src')
-
-import data
-import errors
+import src.data as data
+import src.errors as errors
 import random as r
 
-def random(*args):
+def randint(*args):
+    """Return random number"""
     if len(args) < 2:
         errors.error(f'Random needs 2 arguments, but only got {len(args)}')
     a = float(args[0].val)
@@ -16,6 +14,15 @@ def random(*args):
     else:
         return data.Number(r.randint(a, b))
 
+def choice(**kwargs):
+    if len(kwargs) != 1:
+        errors.error(f'Choice needs 1 arguement, but got {len(kwargs)}')
+
+    else:
+        return data.Type(r.choice(kwargs))
+
+
 attrs = {
-    'random':data.Method(random),
+    'choice': data.Method(choice),
+    'randint':data.Method(randint),
 }
