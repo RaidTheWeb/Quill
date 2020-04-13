@@ -1,5 +1,8 @@
-import src.data as data
-import src.errors as errors
+import sys
+sys.path.append("../src")
+
+import data as data
+import errors as errors
 import random as r
 
 def randint(*args):
