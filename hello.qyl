@@ -1,1 +1,12 @@
 import("stdlib/stdio")
+
+number: a(5)
+
+func: x
+x = func(number: n, number) {
+    a = 6
+    return(n * a)
+}
+
+stdio.cout(string(x(1)))
+stdio.cout(string(a))

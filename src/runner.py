@@ -65,11 +65,7 @@ def expr(val, scope):
         return data.call(func, expr(val.val[2], scope))
     elif val.type == 'block':
         program = Program(val.val[0])
-        for attr in scope.attrs:
-            val = scope.attrs[attr]
-            if isinstance(val, (data.Map, data.Class, data.Func)):
-                program.globals.attrs[attr] = val
-        return data.Block(program)
+        return data.Block(program, scope)
     elif val.type == 'array':
         array = []
         for item in val.val[0].val:
@@ -80,7 +76,7 @@ def expr(val, scope):
             return data.List(data.Type)
     elif val.type == 'index':
         index = data.op(expr(val.val[0], scope), data.Symbol('index'))
-        return data.call(indedata.x, expr(val.val[1], scope))
+        return data.call(index, expr(val.val[1], scope))
     elif val.type == 'child':
         return data.get(expr(val.val[0], scope), val.val[1])
     elif val.type == 'bool':
@@ -166,7 +162,6 @@ class Program():
                     return val
             return expr(self.ast.val[-1], self.globals)
         except Exception as e:
-            raise e
             errors.error(f'Python threw error: {type(e).__name__} {e}')
 
 def run(ast):
