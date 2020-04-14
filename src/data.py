@@ -94,6 +94,18 @@ def op(obj, op):
         else:
             return get(obj, Symbol(op))
 
+def copy(obj):
+    if isinstance(obj, List):
+        return List(obj.type, *obj.val)
+    elif isinstance(obj, Block):
+        return Block(obj.val, obj.parent)
+    elif isinstance(obj, Map):
+        out = Map(obj.key_t, obj.val_t)
+        out.attrs = obj.attrs
+        return out
+    else:
+        return type(obj)(obj.val)
+
 class Type():
     typename = 'Type'
     def __init__(self):
@@ -356,8 +368,10 @@ class Reference(Type):
 
 class Block(Type):
     typename = 'Block'
-    def __init__(self, ast):
+    def __init__(self, ast, scope=None):
         self.val = ast
+        self.parent = scope
+        self.scope = ast.globals
         self.typename = 'Block'
         self.attrs = {
             '_set':Method(super().set),
@@ -366,8 +380,18 @@ class Block(Type):
             '_call':Method(self.val.run),
             '_string':Method(self.string),
         }
+        self.val.globals.attrs['_get'] = Method(self.get)
     def string(self):
         return String(repr(self.val))
+    def get(self, attr):
+        if attr.val in self.scope.attrs:
+            return self.scope.get(attr)
+        elif attr.val in self.parent.attrs:
+            val = self.parent.get(attr).to
+            self.scope.set(attr, copy(val))
+            return self.scope.get(attr)
+        else:
+            errors.error(f'No such local {attr.val}')
 
 class Func(Type):
     typename = 'Func'
@@ -394,11 +418,6 @@ class Func(Type):
             '_call':Method(self.call),
         }
     def call(self, *args):
-        run = type(self.val.val)(self.val.val.ast)
-        for attr in self.val.val.globals.attrs:
-            val = self.val.val.globals.attrs[attr]
-            if isinstance(val, (Map, Class, Func)):
-                run.globals.attrs[attr] = val
         args = list(args)
         if len(args) != len(self.params):
             errors.error('Wrong amount of arguments')
@@ -406,13 +425,13 @@ class Func(Type):
         for i in range(len(self.params)):
             param = self.params[i]
             name = param.val[1]
-            t = self.val.val.globals.get(Symbol(param.val[0])).val()
+            t = self.val.scope.get(Symbol(param.val[0])).val()
             if isinstance(args[i], Reference):
                 args[i] = args[i].to
             if not typecheck(args[i], t, f'Invalid argument type: expected {t.typename}, got {args[i].typename}'):
                 return
-            run.globals.set(Symbol(name), args[i])
-        out = run.run()
+            self.val.scope.set(Symbol(name), args[i])
+        out = self.val.val.run()
         if isinstance(out, Reference):
             out = out.to
         if type(out) != Type:

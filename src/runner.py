@@ -65,11 +65,7 @@ def expr(val, scope):
         return data.call(func, expr(val.val[2], scope))
     elif val.type == 'block':
         program = Program(val.val[0])
-        for attr in scope.attrs:
-            val = scope.attrs[attr]
-            if isinstance(val, (data.Map, data.Class, data.Func)):
-                program.globals.attrs[attr] = val
-        return data.Block(program)
+        return data.Block(program, scope)
     elif val.type == 'array':
         array = []
         for item in val.val[0].val:
