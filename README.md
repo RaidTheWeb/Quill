@@ -63,7 +63,7 @@ if(a) {
   <code>
 }
 ```
-There is no built-in for loop. However, the range class has a method .each, that given a declaration and a block, will execute that block over itself.
+There is no built-in for loop. However, the range class has a method `.each`, that given a declaration and a block, will execute that block over itself.
 For example:
 ```
 range(10).each(number: i) {
