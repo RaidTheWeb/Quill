@@ -1,5 +1,5 @@
 # Quill
-[![Run on Repl.it](https://repl.it/badge/github/Lang-Language/Lang)](https://repl.it/github/Lang-Language/Lang)
+[![Run on Repl.it](https://repl.it/badge/github/Quill-Language/Quill)](https://repl.it/github/Quill-Language/Quill)
 
 
 Quill is a statically typed, interpreted language.
