@@ -52,6 +52,52 @@ def xor(*args):
     for i in range(len(val)):
         out += chr(ord(val[i]) ^ ord(key[i % len(key)]))
     return data.String(out)
+    
+    
+def caesare(message, key):
+
+    LETTERS = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+
+    translated = ''
+
+    for symbol in message.val:
+        if symbol in LETTERS:
+            num = LETTERS.find(symbol)
+            num = num + int(key.val)
+
+            if num >= len(LETTERS):
+                num = num - len(LETTERS)
+            elif num < 0:
+                num = num + len(LETTERS)
+
+            translated = translated + LETTERS[num]
+
+        else:
+            translated = translated + symbol
+    return data.String(translated)
+
+def caesard(message, key):
+
+    LETTERS = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+
+    translated = ''
+
+    for symbol in message.val:
+        if symbol in LETTERS:
+            num = LETTERS.find(symbol)
+            num = num - int(key.val)
+
+            if num >= len(LETTERS):
+                num = num - len(LETTERS)
+            elif num < 0:
+                num = num + len(LETTERS)
+
+            translated = translated + LETTERS[num]
+
+        else:
+            translated = translated + symbol
+    return data.String(translated)
+
 
 attrs = {
     'sha256':data.Method(sha256),
@@ -60,4 +106,6 @@ attrs = {
     'md5':data.Method(md5),
     'rot13':data.Method(rot13),
     'xor':data.Method(xor),
+    'caesare':data.Method(caesare),
+    'caesard':data.Method(caesard),
 }
